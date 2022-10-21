@@ -280,76 +280,6 @@ def manual_tx_data(to_addr:str, function_hash:str, *args):  # This can be used f
     return {'to': Web3.toChecksumAddress(to_addr),'data': data}  # Returns a dictionary containing to and data.
 
 
-def compact_signature_test(key_version_name, w3, transaction_dict={}, tx_type=2):
-    from eth_account.datastructures import SignedTransaction
-    from eth_account._utils.transactions import (ChainAwareUnsignedTransaction, Transaction, UnsignedTransaction, encode_transaction, serializable_unsigned_transaction_from_dict, strip_signature)
-    from rlp import encode as rlp_encode
-    from ecdsa.util import sigdecode_der
-    import web3
-    from binascii import unhexlify, hexlify
-    from cryptography.hazmat.primitives.serialization import load_pem_public_key
-    from cryptography.hazmat.backends import default_backend
-    from Crypto.Hash import keccak
-
-    client = auth_gcp_client()
-    public_key = client.get_public_key(request={'name': key_version_name})
-    pem = public_key.pem.encode('utf-8')
-    ec_key = load_pem_public_key(pem, default_backend())
-    x = ec_key.public_numbers().x
-    y = ec_key.public_numbers().y
-    uncompressed_pubkey_hex = "04{:064x}{:064x}".format(x, y)
-    wallet_address = web3.Web3.toChecksumAddress((b"0x"+hexlify(keccak.new(data=unhexlify(uncompressed_pubkey_hex[2:]), digest_bits=256).digest())[-40:]).decode())
-
-    if 'to' not in transaction_dict: transaction_dict['to'] = web3.Web3.toChecksumAddress('0x0000000000000000000000000000000000000000')
-    if 'value' not in transaction_dict: transaction_dict['value'] = 0
-    if 'data' not in transaction_dict: transaction_dict['data'] = 0
-    transaction_dict['from'] = wallet_address
-    transaction_dict['chainID'] = w3.eth.chain_id
-    transaction_dict['gasPrice'] = w3.eth.gas_price
-    transaction_dict['nonce'] = w3.eth.get_transaction_count(wallet_address)
-    transaction_dict['gas'] = w3.eth.estimate_gas({**{k: transaction_dict[k] for k in transaction_dict if k in ('from', 'nonce', 'to', 'data', 'value')}}) # Estimate gas with a subset of data, since gas estimates don't like certain fields to be present.
-    transaction_dict['v'] = transaction_dict['chainID']
-    transaction_dict['r'] = 0
-    transaction_dict['s'] = 0
-
-    if tx_type == 2: #If tx_type is set to 2, see if the chain supports Type 2 transactions otherwise fall back to type 0
-        block_data = w3.eth.get_block('pending')
-        if 'baseFeePerGas' in block_data:  # If this key exists then the chain supports Type 2 EIP 1559 Transactions
-            baseFee = block_data.baseFeePerGas
-            transaction_dict['maxFeePerGas'] = web3.gas_strategies.time_based.construct_time_based_gas_price_strategy(max_wait_seconds=30,sample_size=10)(w3, transaction_dict)
-            transaction_dict['maxPriorityFeePerGas'] = transaction_dict['maxFeePerGas'] - baseFee
-        else:
-            tx_type = 0  # Fall back to type 0 (legacy) transaction if the chain doesn't support type 2 (EIP 1559) transactions.
-    else:
-        tx_type = 0  # Should be obvious, but included for readability
-
-    # Preformat binary fields for RLP encoding
-    if transaction_dict['data']==0 or transaction_dict['data']=="0x":transaction_dict['data']=b''
-    if type(transaction_dict['data']) != type(b''): transaction_dict['data'] = unhexlify(transaction_dict['data'].replace('0x', ''))
-    if type(transaction_dict['to']) != type(b''): transaction_dict['to'] = unhexlify(transaction_dict['to'].replace('0x', ''))
-
-    tx_serializable=serializable_unsigned_transaction_from_dict(transaction_dict=transaction_dict) #Strip chainID & from and turn it into a class-based dictionary.
-    keccak_hashed_tx = w3.keccak(rlp_encode(tx_serializable.hash())) #Hash of the RLP encoded Hash of the TX
-    digest = {'sha256': bytes(keccak_hashed_tx)}
-    digest_crc32c = crc32c(digest['sha256'])
-    signature_response = client.asymmetric_sign(request={'name': key_version_name, 'digest': digest, 'digest_crc32c': digest_crc32c}).signature
-    r, s = sigdecode_der(signature_response, None)
-    for parityBit in (0, 1):
-        v = transaction_dict['chainID'] * 2 + 35 + parityBit
-        try:
-            assert wallet_address == w3.eth.account.recoverHash(message_hash=digest['sha256'], vrs=(v, r, s))
-            y_parity = bool(parityBit) #Convert to True or False
-            break
-        except:
-            pass
-    w3.eth.account.recoverHash(message_hash=bytes(keccak_hashed_tx), vrs=(v, r, s))
-    encoded_signed_tx = encode_transaction(unsigned_transaction=tx_serializable,vrs=(v, r, s))
-    testdiff = SignedTransaction(transaction_dict,keccak_hashed_tx, r, s, v)
-    rlp_encode(tx_serializable)
-    transaction_result_hash = w3.eth.sendRawTransaction(encoded_signed_tx)
-    print("Transaction broadcast hash:\n%s" % hexlify(transaction_result_hash).decode("utf-8"))
-
-
 def step_4_sign_and_send(key_version_name, w3, transaction_dict={}, tx_type=2):
     # w3 is the rpc endpoint returned from the get_w3 function
     # tx_type of 0 is a legacy transaction, 2 is the newer EIP 1559 type transaction.
@@ -441,7 +371,7 @@ def step_4_sign_and_send(key_version_name, w3, transaction_dict={}, tx_type=2):
     from web3.middleware import geth_poa_middleware
     w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-    print("Native coin balance: " + str(web3.Web3.fromWei(w3.eth.getBalance(wallet_address), "ether")))  # Get ETH/BNB/AVAX/Matic Balance
+    print("Native coin balance on chainId["+str(w3.eth.chain_id)+"]: " + str(web3.Web3.fromWei(w3.eth.getBalance(wallet_address), "ether")))  # Get ETH/BNB/AVAX/Matic Balance
 
     # Construct a basic transaction then update gas, gasPrice, nonce and chainID.
     if 'to' not in transaction_dict: transaction_dict['to'] = web3.Web3.toChecksumAddress('0x0000000000000000000000000000000000000000')
@@ -545,6 +475,7 @@ def step_4_sign_and_send(key_version_name, w3, transaction_dict={}, tx_type=2):
                                                transaction_legacy.gas, transaction_legacy.to, transaction_legacy.value,
                                                transaction_legacy.data, v, r, s)'''
         signed_transaction_legacy = TransactionLegacy(**{**{k: transaction_dict[k] for k in transaction_dict if k in TransactionLegacy._meta.field_names},'v': v, 'r': r,'s': s})  # Shorthand of the above
+        print(signed_transaction_legacy)
         encoded_transaction = rlp.encode(signed_transaction_legacy)
 
     if tx_type==2:
@@ -553,6 +484,7 @@ def step_4_sign_and_send(key_version_name, w3, transaction_dict={}, tx_type=2):
                                                        transaction_1559.gas, transaction_1559.to, transaction_1559.value,
                                                        transaction_1559.data, transaction_1559.accessList, y_parity, r, s)'''
         signed_transaction_1559 = SignedTransactionType1559(**{**{k: transaction_dict[k] for k in transaction_dict if k in SignedTransactionType1559._meta.field_names},'yParity': y_parity, 'r': r,'s': s})  # Shorthand of the above
+        print(signed_transaction_1559)
         encoded_transaction = bytes([2]) + rlp.encode(signed_transaction_1559)  # Add 0x02 to the front for type 2 transactions
     print("encoded signed transaction: %s" % hexlify(encoded_transaction).decode("utf-8"))
     # send raw transaction
