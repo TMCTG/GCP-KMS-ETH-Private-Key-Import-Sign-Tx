@@ -1,6 +1,6 @@
 ## Ethereum Private Key Import and Signing Transactions with Google Cloud Platform Key Management Service
   
-AKA "Cloud-based hardware wallet".  
+### AKA "Cloud-based hardware wallet".  
   
 This script can take a given Ethereum-type private key, convert it to a PKCS#8 DER-encoded key, wrap it with a Google Cloud Platform (GCP) Key Management Service (KMS) wrapping key and import it into a GCP KMS Hardware Security Module (HSM).  
   
@@ -31,7 +31,7 @@ Feel free to use this private key/wallet as a test, it should still have gas on 
 There is some set up required before using this script.
 Head over to GCP KMS and run through this list of prerequisites. https://cloud.google.com/kms
 
-## Prerequisites of using this script:  
+## Prerequisites to running this script:  
 
 ### 1. Create a Google Cloud Platform project.
 
@@ -45,25 +45,25 @@ Head over to GCP KMS and run through this list of prerequisites. https://cloud.g
      * cloudkms.cryptoKeyVersions.list
      * cloudkms.cryptoKeys.create
 
-## 3. Create a new service account for this project
+### 3. Create a new service account for this project
    *(GCC, under 'IAM and Admin' -> "Service Accounts', then press the button '+ CREATE SERVICE ACCOUNT')*
    1. (Optional) Choose a 'Service account name', *e.g. 'KMS Service Account'*
    2. (Mandatory) Choose a 'Service account ID', *e.g. 'kms-service-account'*
    3. (Optional) Choose a 'Service account description', *e.g. 'Importer/Signer'*
 
-## 4. Assign this service account two roles, the custom role created in step 2, and "Cloud KMS CryptoKey Signer/Verifier"
+### 4. Assign this service account two roles, the custom role created in step 2, and "Cloud KMS CryptoKey Signer/Verifier"
    *(GCC, under 'IAM and Admin' -> "IAM', then press the button '+ GRANT ACCESS')*
    1. Under 'Principals', 'New principals', start typing 'kms-service-account' (or whatever you specified in 3b) then click the correct account from the pop-up)
    2. Under 'Assign roles', 'Select a role *', start typing 'kms importer', select 'Custom Cloud KMS Importer'
    3. Press the button '+ ADD ANOTHER ROLE', then under 'Select a role', type 'signer/', select 'Cloud KMS CryptoKey Signer/Verifier'
    4. Press the button 'SAVE' at the bottom.
 
-## 5. Create a key ring.
+### 5. Create a key ring.
    *(GCC, 'Security' -> 'Key Management', then press the button ' + CREATE KEY RING')*
    1. Give the key ring a name and press the 'CREATE' button.
    2. Press the 'CANCEL' button on the 'Create key' page to go back to the key ring screen
 
-## 6. Take note of the following fields - You'll need to enter them in the python script:
+### 6. Take note of the following fields - You'll need to enter them in the python script:
    * project_id: (Click on the project name to the left of the main search bar) Google Cloud project ID, *e.g. 'my-project'.*
    * location_id: = *(GCC->'Security'->'Key Management'->'KEY RINGS' tab)* The location of the key ring, *e.g. 'global', 'asia', 'us-east1'.*
    * key_ring_id: = *(GCC->'Security'->'Key Management'->'KEY RINGS' tab)* The name of the key ring, *e.g. 'my-key-ring'.*
@@ -79,12 +79,12 @@ print(re.sub("(^.{6})(.*)(.{4}$)", "\g<1>_\g<3>", web3.Account.privateKeyToAccou
 0x9608_c669
 ```
 
-## 7. Create a Key for the Service Account that will be used for authentication
+### 7. Create a Key for the Service Account that will be used for authentication
    *(GCC, 'IAM and Admin', 'Service Accounts')*
    1. Under 'Actions' for your service account click the three vertical dots and choose 'Manage keys'
    2. Click 'ADD KEY', choose 'JSON' and save it somewhere safe on your PC. You''
 
-## 8. Install python and all required modules.
+### 8. Install python and all required modules.
    1. After installing python, install the necessary modules:  
    python should already have these native modules pre-installed: pickle codecs binascii os base64 time decimal  
    So just go ahead and add these extra ones:  
