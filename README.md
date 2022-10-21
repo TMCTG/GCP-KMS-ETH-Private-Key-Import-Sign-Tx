@@ -1,4 +1,4 @@
-## Google Cloud Platform Key Management Service - Ethereum Private Key Import and Sign Transactions
+## Ethereum Private Key Import and Signing Transactions with Google Cloud Platform Key Management Service
   
 AKA "Cloud-based hardware wallet".  
   
