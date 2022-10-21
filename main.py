@@ -4,22 +4,26 @@
 # 3. Online: Upload wrapped key into GCP KMS and 'destroy' the 1st key version (pre-import) to avoid being billed for it (You are billed for each key version).
 # 4. Test. Build a transaction, have GCP KMS sign it, then send it to the blockchain to be mined.
 
-# Sources:
-# https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-# https://bitcointalk.org/index.php?topic=5309706.0
-# https://cloud.google.com/kms/docs/importing-a-key#kms-create-import-job-python
-# https://docs.zymbit.com/tutorials/digital-wallet/ethereum-signing-example/
-# https://aws.amazon.com/blogs/database/how-to-sign-ethereum-eip-1559-transactions-using-aws-kms/
-# https://www.freecodecamp.org/news/how-to-create-an-ethereum-wallet-address-from-a-private-key-ae72b0eee27b/
+
+project_id = "my-project"  # project_id (string): Google Cloud project ID (e.g. 'my-project').
+location_id = "asia"  # location_id (string): Cloud KMS location (e.g. 'us-east1').
+key_ring_id = "my-key-ring"  # key_ring_id (string): ID of the Cloud KMS key ring (e.g. 'my-key-ring').
+crypto_key_id = "0x9608_c669"  # "TestECKey"  # crypto_key_id (string): ID of the key to import (e.g. 'my-asymmetric-signing-key').
+service_account_key_json = "C:\\Python\\GCP_KMS_EVM_Key_Import_Sign\\my-project-926162ce0f.json"
+
+import_job_id = crypto_key_id+"_Import"  # import_job_id (string): ID of the import job (e.g. 'my-import-job').
+crypto_key_version_id = "2"  # crypto_key_version_id. Assumes you're going to sign with the 2nd imported version.
+
 
 def auth_gcp_client():
     from google.cloud import kms  # google-cloud-kms module
     # Create the client.
     from google.oauth2 import service_account  # google-api-python-client module
-    credentials = service_account.Credentials.from_service_account_file('Service_Account_Key.json')
+    credentials = service_account.Credentials.from_service_account_file(service_account_key_json)
     credentials = service_account.Credentials.from_service_account_info()
     client = kms.KeyManagementServiceClient(credentials=credentials)
     return client
+
 
 def step_1a_online_create_target_key(project_id, location_id, key_ring_id, crypto_key_id):
     from google.cloud import kms
@@ -164,6 +168,7 @@ def step_3_online_import_wrapped_material():
     print('Imported: {}'.format(import_job_name))
 
     #Destroy superfluous key versions to prevent being billed for key versions that aren't going to be used.
+    print('You are billed per key version. Key version 2 is the imported one, so we''ll destroy key version 1 to save costs')
     key_versions = client.list_crypto_key_versions(request={"parent": crypto_key_name})._response.crypto_key_versions
     newest_key_version = max(key_versions, key=lambda ver: ver.create_time)
     if (newest_key_version.state) and ('import_job' in newest_key_version):  # state is bool True if the version is 'Enabled', and if the key 'import_job' exists it was created through this method.
@@ -530,7 +535,7 @@ def step_4_sign_and_send(key_version_name, w3, transaction_dict={}, tx_type=2):
     # We now have the signature, r, s, v & y_parity
     print("ECDSA Signature: %s" % signature)
     print("ECDSA Sig Length: %s" % len(signature))
-    print("ECDSA Sig Y Parity: %s" % y_parity)
+    print("ECDSA Sig Y Parity: " + str(int(y_parity)) + " (" + str(y_parity) + ")")
     print("R: %s" % r)
     print("S: %s" % s)
     print("V: %s" % v)
@@ -587,14 +592,7 @@ def step_4_sign_and_send(key_version_name, w3, transaction_dict={}, tx_type=2):
     # ----------
 
 if __name__ == "__main__":
-    project_id = "my-project"  # project_id (string): Google Cloud project ID (e.g. 'my-project').
-    location_id = "asia"  # location_id (string): Cloud KMS location (e.g. 'us-east1').
-    key_ring_id = "my-key-ring"  # key_ring_id (string): ID of the Cloud KMS key ring (e.g. 'my-key-ring').
-    crypto_key_id = "0x9608_c669"  # "TestECKey"  # crypto_key_id (string): ID of the key to import (e.g. 'my-asymmetric-signing-key').
-
-    import_job_id = crypto_key_id+"_Import"  # import_job_id (string): ID of the import job (e.g. 'my-import-job').
-    crypto_key_version_id = "2"  # crypto_key_version_id. Assumes you're going to sign with the 2nd imported version.
-
+# Menu structure that calls the different functions as requested.
     ans = True
     while ans:
         print("Make sure these values remain the same throughout all steps for each key to be imported/tested:\n  project_id = "+project_id+"\n  location_id = "+location_id+"\n  key_ring_id = "+key_ring_id+"\n  import_job_id = "+import_job_id+"\n  crypto_key_id = "+crypto_key_id)  # +"\n  crypto_key_version_id = "+crypto_key_version_id)
