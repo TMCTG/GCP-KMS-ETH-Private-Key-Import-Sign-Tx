@@ -3,6 +3,7 @@
 This script can take a given Ethereum-type private key, convert it to a PKCS#8 DER-encoded key, wrap it with a Google Cloud Platform (GCP) Key Management Service (KMS) wrapping key and import it into a GCP KMS Hardware Security Module (HSM).  
   
 Then it can build a test transaction and use the GCP KMS HSM to sign it - The r, s, v & y_parity values are extracted from the signature and the reconstructed signed transaction can be broadcast from the local device.
+This is a paid service that costs about $2.65 per month to host. (Eliptic Curve key versions with protection level HSM cost $2.50 per key version per month, plus $0.15 per 10,000 operations.)
 
 ### Upload my private key to the internet, are you crazy?!
 Hardware wallets are the gold standard in personal private key security. But what if you want to automate some of your regular decentralised finance (DeFi) activities like compounding or taking profit from a farm or ROI DAPP? Hardware wallets sacrifice convenience for security, and you'll still need to manually approve each transaction if you create a script that prepares transactions and prompts your hardware wallet to sign them.  
@@ -86,5 +87,9 @@ print(re.sub("(^.{6})(.*)(.{4}$)", "\g<1>_\g<3>", web3.Account.privateKeyToAccou
    ```
    python.exe -m pip install google-cloud-kms google-api-python-client ecdsa cryptography crcmod six web3 requests eth_account rlp Crypto
    ```
+   
+## That's it
+Read through the code if you haven't, when you're comfortable run the script and do a test run online for all steps with the sample private key provided.
+Send some transactions, and if you get comfortable enough, 
 [^1]: https://cloud.google.com/docs/security/cloud-hsm-architecture
 [^2]: Link to Tails: https://tails.boum.org/ Article on Tails: https://www.wired.com/2014/04/tails/
