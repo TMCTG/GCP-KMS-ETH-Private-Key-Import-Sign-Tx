@@ -20,7 +20,6 @@ def auth_gcp_client():
     # Create the client.
     from google.oauth2 import service_account  # google-api-python-client module
     credentials = service_account.Credentials.from_service_account_file(service_account_key_json)
-    credentials = service_account.Credentials.from_service_account_info()
     client = kms.KeyManagementServiceClient(credentials=credentials)
     return client
 
