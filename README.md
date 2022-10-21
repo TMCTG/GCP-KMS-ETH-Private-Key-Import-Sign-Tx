@@ -93,8 +93,8 @@ print(re.sub("(^.{6})(.*)(.{4}$)", "\g<1>_\g<3>", web3.Account.privateKeyToAccou
    ```
    
 ## That's it
-Read through the code if you haven't, when you're comfortable run the script and do a test run online for all steps with the sample private key provided.
-Send some transactions, and if you get comfortable enough, you could import one of your wallets and automate some of your regular activites with the copy_tx function.  
+Read through the code if you haven't, when you're comfortable run the script and do a test run through all steps (all online for testing is fine) with the sample private key provided, it should still have some bsc and avax testnet gas.
+Send some transactions, try out the copy_tx function to resend your (or someone else's) transactions, and if you get comfortable enough, you could import one of your wallets and automate some of your regular activites. Remember...  
 
 **Don't blame me if something goes wrong!**
 
