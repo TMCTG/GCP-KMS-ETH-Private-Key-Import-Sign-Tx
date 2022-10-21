@@ -82,19 +82,22 @@ print(re.sub("(^.{6})(.*)(.{4}$)", "\g<1>_\g<3>", web3.Account.privateKeyToAccou
 ### 7. Create a Key for the Service Account that will be used for authentication
    *(GCC, 'IAM and Admin', 'Service Accounts')*
    1. Under 'Actions' for your service account click the three vertical dots and choose 'Manage keys'
-   2. Click 'ADD KEY', choose 'JSON' and save it somewhere safe on your PC. You''
+   2. Click 'ADD KEY', choose 'JSON' and save it somewhere safe on your PC. You'll need to specify the path to this file in the script.
 
 ### 8. Install python and all required modules.
    1. After installing python, install the necessary modules:  
-   python should already have these native modules pre-installed: pickle codecs binascii os base64 time decimal  
-   So just go ahead and add these extra ones:  
+   python should already have these native modules pre-installed: ```pickle codecs binascii os base64 time decimal```  
+   So just go ahead and add these extra ones: ```google-cloud-kms google-api-python-client ecdsa cryptography crcmod six web3 requests eth_account rlp Crypto```   
    ```
    python.exe -m pip install google-cloud-kms google-api-python-client ecdsa cryptography crcmod six web3 requests eth_account rlp Crypto
    ```
    
 ## That's it
 Read through the code if you haven't, when you're comfortable run the script and do a test run online for all steps with the sample private key provided.
-Send some transactions, and if you get comfortable enough, 
+Send some transactions, and if you get comfortable enough, you could import one of your wallets and automate some of your regular activites with the copy_tx function.  
+
+**Don't blame me if something goes wrong!**
+
 [^1]: https://docs.aws.amazon.com/kms/latest/developerguide/importing-keys.html - "AWS: Imported key material is supported only for symmetric encryption KMS keys"
 [^2]: https://cloud.google.com/kms/docs/importing-a-key#preparing_the_key
 [^3]: https://cloud.google.com/docs/security/cloud-hsm-architecture
