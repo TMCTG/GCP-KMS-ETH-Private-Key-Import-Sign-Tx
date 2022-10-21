@@ -3,15 +3,16 @@
 This script can take a given Ethereum-type private key, convert it to a PKCS#8 DER-encoded key, wrap it with a Google Cloud Platform (GCP) Key Management Service (KMS) wrapping key and import it into a GCP KMS Hardware Security Module (HSM).  
   
 Then it can build a test transaction and use the GCP KMS HSM to sign it - The r, s, v & y_parity values are extracted from the signature and the reconstructed signed transaction can be broadcast from the local device.  
-This is a paid service that costs about $2.65 per month to host. (Eliptic Curve key versions with protection level HSM cost $2.50 per key version per month, plus $0.15 per 10,000 operations.)
+This is a paid service that costs about $2.65 per month to host. (Eliptic Curve key versions with protection level HSM cost $2.50 per key version per month, plus $0.15 per 10,000 operations.)  
+Other cloud-based KMS providers can host Asymmetric Elliptic Curve SECP256K1 keys (Which is what Ethereum and Bitcoin private keys are), but many don't support importing Asymmetric keys by supplying your own key materials[^1]. GCP KMS does[^2].  
 
 ### Upload my private key to the internet, are you crazy?!
 Hardware wallets are the gold standard in personal private key security. But what if you want to automate some of your regular decentralised finance (DeFi) activities like compounding or taking profit from a farm or ROI DAPP? Hardware wallets sacrifice convenience for security, and you'll still need to manually approve each transaction if you create a script that prepares transactions and prompts your hardware wallet to sign them.  
 You... *could*... export your private key or pass phrase from the hardware wallet and hard code it in an automation script, but then you've circumvented the security provided by the hardware wallet and put your funds at risk. Even if you encrypt the key, at some point in your script you'll have to pass the private key as plain text to the transaction signing function. Not a great way to go, honestly.
 
-Consider instead, hosting your private key on a reputable cloud-based HSM and signing automated transactions with **revokable credentials**. This is, in my estimation, a reasonable combination of security and convenience if you can get the key there safely. Feel free to read Google's HSM Architecture Whitepaper to get a better understanding of how they store secrets[^1].
+Consider instead, hosting your private key on a reputable cloud-based HSM and signing automated transactions with **revokable credentials**. This is, in my estimation, a reasonable combination of security and convenience if you can get the key there safely. Feel free to read Google's HSM Architecture Whitepaper to get a better understanding of how they store secrets[^2].
 
-In order to make the uploading of the key as secure (and easy) as possible, the different stages of this process are split up so that the most sensitive part of the process (Entering your private key, PCKS8 DER encoding it and wrapping it with the Import job's wrapping key) can be done offline and/or from a secure and trusted boot image such as Tails[^2].
+In order to make the uploading of the key as secure (and easy) as possible, the different stages of this process are split up so that the most sensitive part of the process (Entering your private key, PCKS8 DER encoding it and wrapping it with the Import job's wrapping key) can be done offline and/or from a secure and trusted boot image such as Tails[^3].
 And you'll note that all the code is on full display to be scrutinised. And please do, especially the two "step 2" functions that deal with the most sensitive part of the process.
 
 Script steps:
@@ -91,5 +92,7 @@ print(re.sub("(^.{6})(.*)(.{4}$)", "\g<1>_\g<3>", web3.Account.privateKeyToAccou
 ## That's it
 Read through the code if you haven't, when you're comfortable run the script and do a test run online for all steps with the sample private key provided.
 Send some transactions, and if you get comfortable enough, 
-[^1]: https://cloud.google.com/docs/security/cloud-hsm-architecture
-[^2]: Link to Tails: https://tails.boum.org/ Article on Tails: https://www.wired.com/2014/04/tails/
+[^1]: https://docs.aws.amazon.com/kms/latest/developerguide/importing-keys.html - "AWS: Imported key material is supported only for symmetric encryption KMS keys"
+[^2]: https://cloud.google.com/kms/docs/importing-a-key#preparing_the_key
+[^3]: https://cloud.google.com/docs/security/cloud-hsm-architecture
+[^4]: Link to Tails: https://tails.boum.org/ Article on Tails: https://www.wired.com/2014/04/tails/
