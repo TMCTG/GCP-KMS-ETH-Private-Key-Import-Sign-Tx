@@ -1,5 +1,7 @@
 ## Google Cloud Platform Key Management Service - Ethereum Private Key Import and Sign Transactions
   
+AKA "Cloud-based hardware wallet".  
+  
 This script can take a given Ethereum-type private key, convert it to a PKCS#8 DER-encoded key, wrap it with a Google Cloud Platform (GCP) Key Management Service (KMS) wrapping key and import it into a GCP KMS Hardware Security Module (HSM).  
   
 Then it can build a test transaction and use the GCP KMS HSM to sign it - The r, s, v & y_parity values are extracted from the signature and the reconstructed signed transaction can be broadcast from the local device.  
