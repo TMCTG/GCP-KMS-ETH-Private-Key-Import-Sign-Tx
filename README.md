@@ -41,10 +41,10 @@ Head over to GCP KMS and run through this list of prerequisites. https://cloud.g
    1. Type "kms importer" to the right of 'Filter', select "Cloud KMS Importer"
    2. Click the 3 vertical dots to the right of Status: Enabled, then select "Create role from this role"
    3. Click the button '+ ADD PERMISSIONS', then to the right of 'Filter', add these extra permissions individually.
-     * cloudkms.cryptoKeyVersions.create
-     * cloudkms.cryptoKeyVersions.destroy
-     * cloudkms.cryptoKeyVersions.list
-     * cloudkms.cryptoKeys.create
+      * cloudkms.cryptoKeyVersions.create
+      * cloudkms.cryptoKeyVersions.destroy
+      * cloudkms.cryptoKeyVersions.list
+      * cloudkms.cryptoKeys.create
 
 ### 3. Create a new service account for this project
    *(GCC, under 'IAM and Admin' -> "Service Accounts', then press the button '+ CREATE SERVICE ACCOUNT')*
